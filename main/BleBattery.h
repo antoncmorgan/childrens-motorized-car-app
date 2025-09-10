@@ -7,7 +7,7 @@
 class BleBattery {
 public:
   BleBattery(const char* localName, const char* serviceUuid, const char* charUuid,
-             unsigned long advPeriod = 30000UL, unsigned long advDuration = 4000UL);
+             unsigned long advPeriod = 10000UL, unsigned long advDuration = 3000UL); // default: advertise ~3s every 10s
   ~BleBattery();
 
   bool begin();
@@ -21,6 +21,7 @@ public:
 
 private:
   const char* _localName;
+  char _nameBuf[32]; // dynamic name with MAC suffix
   unsigned long _advPeriod;
   unsigned long _advDuration;
   unsigned long _lastAdvertiseCycle;
@@ -29,7 +30,6 @@ private:
 
   BLEService* _service;
   BLECharacteristic* _voltageChar;
-  uint8_t _manufData[4];
 };
 
 #endif // BLE_BATTERY_H

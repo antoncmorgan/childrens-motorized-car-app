@@ -7,10 +7,6 @@ BleBattery::BleBattery(const char *localName, const char *serviceUuid, const cha
 {
     _service = new BLEService(serviceUuid);
     _voltageChar = new BLECharacteristic(charUuid, BLERead | BLENotify, 2);
-    _manufData[0] = 0xFF;
-    _manufData[1] = 0xFF;
-    _manufData[2] = 0x00;
-    _manufData[3] = 0x00;
 }
 
 BleBattery::~BleBattery()
@@ -23,7 +19,14 @@ bool BleBattery::begin()
 {
     if (!Bluefruit.begin())
         return false;
-    Bluefruit.setName(_localName);
+    // Build dynamic name with last two bytes of MAC address.
+    // getAddr() with no params returns ble_gap_addr_t; addr[0] is LSB.
+    ble_gap_addr_t mac = Bluefruit.getAddr();
+    uint8_t b0 = mac.addr[1];
+    uint8_t b1 = mac.addr[0];
+    snprintf(_nameBuf, sizeof(_nameBuf), "%s %02X:%02X", _localName, b0, b1);
+    _nameBuf[sizeof(_nameBuf) - 1] = '\0';
+    Bluefruit.setName(_nameBuf);
 
     _service->begin();
     _voltageChar->begin();
@@ -52,8 +55,6 @@ void BleBattery::updateVoltage(uint16_t millivolts)
     buf[1] = (uint8_t)((millivolts >> 8) & 0xFF);
     _voltageChar->write(buf, 2);
     _voltageChar->notify(buf, 2);
-    _manufData[2] = (uint8_t)(millivolts & 0xFF);
-    _manufData[3] = (uint8_t)((millivolts >> 8) & 0xFF);
 }
 
 void BleBattery::handleAdvertising()
@@ -77,7 +78,6 @@ void BleBattery::handleAdvertising()
             Bluefruit.Advertising.addTxPower();
             Bluefruit.Advertising.addName();
             Bluefruit.Advertising.addService(*_service);
-            Bluefruit.Advertising.addManufacturerData(_manufData, sizeof(_manufData));
             Bluefruit.Advertising.start();
             _advertisingActive = true;
             _advertiseEnd = now + _advDuration;

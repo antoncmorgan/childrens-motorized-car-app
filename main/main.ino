@@ -1,9 +1,15 @@
 #include "BleBattery.h"
 
 const int ADC_PIN = A0;
-const float VOLTAGE_DIVIDER_RATIO = 2.0f;
-const float ADC_REFERENCE_VOLTAGE = 3.3f;
-const int ADC_RESOLUTION_BITS = 12;
+// Voltage divider: assume R_TOP connects battery to ADC pin, R_BOTTOM from ADC pin to GND
+const float R_TOP_OHMS = 220000.0f;    // 220k
+const float R_BOTTOM_OHMS = 46000.0f;  // 46k
+const float R_EPSILON = 0.001f;        // 1mV
+const float VOLTAGE_DIVIDER_RATIO = (R_TOP_OHMS + R_BOTTOM_OHMS) / R_BOTTOM_OHMS + R_EPSILON; // ~5.7926
+// nRF52 SAADC defaults to 0.6V internal ref with gain=1/6 => full-scale ~3.6V
+// Use 3.6 so analogRead() -> volts conversion is correct for 0..3.3V inputs
+const float ADC_REFERENCE_VOLTAGE = 3.6f;
+const int ADC_RESOLUTION_BITS = 10;
 
 const char *BASE_SUFFIX = "-6a47-4d2b-9f2c-5a6e7b8c9d0f"; // keep the '4' for version 4
 
@@ -32,8 +38,7 @@ float readBatteryVoltage()
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial && millis() < 3000)
-    ;
+  while (!Serial && millis() < 3000);
 
   uint32_t serviceShort = UUID_PREFIX_BASE + 0; // 0xA1B21000
   uint32_t charShort = UUID_PREFIX_BASE + 1;    // 0xA1B21001
@@ -50,12 +55,10 @@ void setup()
   Serial.print("Char UUID   : ");
   Serial.println(charUuid);
 
-  ble = new BleBattery("Feather-Batt", serviceUuid, charUuid, 30000UL, 4000UL);
+  ble = new BleBattery("Ch-Car", serviceUuid, charUuid);
   if (!ble->begin())
   {
     Serial.println("BLE init failed");
-    while (1)
-      ;
   }
 
   float v = readBatteryVoltage();
