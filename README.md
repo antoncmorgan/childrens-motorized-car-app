@@ -4,7 +4,7 @@ An app that augments a child's motorized car ride
 Built for the [Contra + Figma Make-a-thon](https://contra.com/community/topic/figmamakeathon)
 
 ## Hardware
-For this is used 2 off the shelf boards:
+For this I used 2 off-the-shelf boards:
 - Adafruit nrf53832 Feather (from [Adafruit](https://www.adafruit.com/product/3406?srsltid=AfmBOooamjq04jDyUF4mwbBeguHoo3EwBAWuu0ORxaPomnoWzzdPV7Hg))
 -  MP1584EN DC-DC Buck Converter (from [Amazon](https://www.amazon.com/MP1584EN-DC-DC-Converter-Adjustable-Module/dp/B01MQGMOKI?th=1))
 - Resistors (220k and 46k) for a voltage divider
